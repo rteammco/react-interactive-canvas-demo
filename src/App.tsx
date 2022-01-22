@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import AnimatedCanvas from './components/AnimatedCanvas';
+import InputGrid from './components/InputGrid';
 import { Point2D } from './utils/Point2D';
 
 function App() {
@@ -10,6 +11,11 @@ function App() {
     <div className="App">
       <h1>React - Interactive Canvas Demo</h1>
       <AnimatedCanvas cursorPosition={cursorPosition} onCursorPositionChanged={setCursorPosition} />
+      <InputGrid gridSize={4} />
+      <InputGrid gridSize={4} />
+      <InputGrid gridSize={4} />
+      <InputGrid gridSize={4} />
+      <InputGrid gridSize={4} />
     </div>
   );
 }
