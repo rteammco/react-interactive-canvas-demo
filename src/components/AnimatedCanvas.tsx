@@ -9,16 +9,40 @@ interface Props {
 export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  const cursorPositionRef = useRef<Point2D>(cursorPosition);
+  cursorPositionRef.current = cursorPosition;
+
+  const revolvingCircleRotationRef = useRef<number>(0);
+
+  const animationFrameRequestRef = useRef<number | null>(null);
+  const lastRenderTime = useRef<number>(Date.now());
+
   useEffect(() => {
-    requestAnimationFrame(renderFrame);
-  }, [cursorPosition]);
+    lastRenderTime.current = Date.now();
+    animationFrameRequestRef.current = requestAnimationFrame(renderFrame);
+    return () => {
+      if (animationFrameRequestRef.current != null) {
+        cancelAnimationFrame(animationFrameRequestRef.current);
+      }
+    };
+  }, []);
 
   function renderFrame(): void {
     const context = canvasRef.current?.getContext('2d');
     if (context != null) {
+      const timeNow = Date.now();
+      const deltaTime = timeNow - lastRenderTime.current;
+      lastRenderTime.current = timeNow;
       clearBackground(context);
-      drawCircle(context, cursorPosition.x, cursorPosition.y);
+      drawMainCircle(context, cursorPositionRef.current.x, cursorPositionRef.current.y);
+      drawRevolvingCircles(
+        context,
+        cursorPositionRef.current.x,
+        cursorPositionRef.current.y,
+        deltaTime
+      );
     }
+    animationFrameRequestRef.current = requestAnimationFrame(renderFrame);
   }
 
   function clearBackground(context: CanvasRenderingContext2D): void {
@@ -28,10 +52,34 @@ export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged
     context.fill();
   }
 
-  function drawCircle(context: CanvasRenderingContext2D, xPos: number, yPos: number): void {
+  function drawMainCircle(context: CanvasRenderingContext2D, xPos: number, yPos: number): void {
     context.beginPath();
     context.arc(xPos, yPos, 10, 0, Math.PI * 2);
     context.fillStyle = 'red';
+    context.fill();
+  }
+
+  function drawRevolvingCircles(
+    context: CanvasRenderingContext2D,
+    xPos: number,
+    yPos: number,
+    deltaTime: number
+  ): void {
+    revolvingCircleRotationRef.current += deltaTime * 0.01;
+    if (revolvingCircleRotationRef.current > 2 * Math.PI) {
+      revolvingCircleRotationRef.current -= 2 * Math.PI;
+    }
+    const xOffsetClockwise = 20 * Math.sin(-revolvingCircleRotationRef.current);
+    const yOffsetClockwise = 20 * Math.cos(-revolvingCircleRotationRef.current);
+    context.beginPath();
+    context.arc(xPos + xOffsetClockwise, yPos + yOffsetClockwise, 5, 0, Math.PI * 2);
+    context.fillStyle = 'blue';
+    context.fill();
+    const xOffsetCounterclockwise = 20 * Math.sin(revolvingCircleRotationRef.current * 2);
+    const yOffsetCounterclockwise = 20 * Math.cos(revolvingCircleRotationRef.current * 2);
+    context.beginPath();
+    context.arc(xPos + xOffsetCounterclockwise, yPos + yOffsetCounterclockwise, 5, 0, Math.PI * 2);
+    context.fillStyle = 'green';
     context.fill();
   }
 
