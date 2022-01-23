@@ -1,6 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { Point2D } from '../utils/Point2D';
 
+const ANIMATION_SPEED = 0.005;
+
+interface AnimationState {
+  cursorPosition: Point2D;
+  isCursorLocked: boolean;
+  lastRenderTime: number;
+  revolvingCircleRotation: number;
+}
+
 interface Props {
   cursorPosition: Point2D;
   onCursorPositionChanged: (position: Point2D) => void;
@@ -9,16 +18,17 @@ interface Props {
 export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const cursorPositionRef = useRef<Point2D>(cursorPosition);
-  cursorPositionRef.current = cursorPosition;
-
-  const revolvingCircleRotationRef = useRef<number>(0);
+  const animationStateRef = useRef<AnimationState>({
+    cursorPosition,
+    isCursorLocked: false,
+    lastRenderTime: Date.now(),
+    revolvingCircleRotation: 0,
+  });
 
   const animationFrameRequestRef = useRef<number | null>(null);
-  const lastRenderTime = useRef<number>(Date.now());
 
   useEffect(() => {
-    lastRenderTime.current = Date.now();
+    animationStateRef.current.lastRenderTime = Date.now();
     animationFrameRequestRef.current = requestAnimationFrame(renderFrame);
     return () => {
       if (animationFrameRequestRef.current != null) {
@@ -27,20 +37,29 @@ export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged
     };
   }, []);
 
+  useEffect(() => {
+    if (!animationStateRef.current.isCursorLocked) {
+      updateAnimationState({ cursorPosition });
+    }
+  }, [cursorPosition]);
+
+  function updateAnimationState(animationStateUpdates: Partial<AnimationState>): void {
+    animationStateRef.current = {
+      ...animationStateRef.current,
+      ...animationStateUpdates,
+    };
+  }
+
   function renderFrame(): void {
     const context = canvasRef.current?.getContext('2d');
     if (context != null) {
+      const { cursorPosition, lastRenderTime } = animationStateRef.current;
       const timeNow = Date.now();
-      const deltaTime = timeNow - lastRenderTime.current;
-      lastRenderTime.current = timeNow;
+      const deltaTime = timeNow - lastRenderTime;
       clearBackground(context);
-      drawMainCircle(context, cursorPositionRef.current.x, cursorPositionRef.current.y);
-      drawRevolvingCircles(
-        context,
-        cursorPositionRef.current.x,
-        cursorPositionRef.current.y,
-        deltaTime
-      );
+      drawMainCircle(context, cursorPosition.x, cursorPosition.y);
+      drawRevolvingCircles(context, cursorPosition.x, cursorPosition.y, deltaTime);
+      updateAnimationState({ lastRenderTime: timeNow });
     }
     animationFrameRequestRef.current = requestAnimationFrame(renderFrame);
   }
@@ -65,21 +84,32 @@ export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged
     yPos: number,
     deltaTime: number
   ): void {
-    revolvingCircleRotationRef.current += deltaTime * 0.01;
-    if (revolvingCircleRotationRef.current > 2 * Math.PI) {
-      revolvingCircleRotationRef.current -= 2 * Math.PI;
+    let { revolvingCircleRotation } = animationStateRef.current;
+    revolvingCircleRotation += deltaTime * ANIMATION_SPEED;
+    if (revolvingCircleRotation > 2 * Math.PI) {
+      revolvingCircleRotation -= 2 * Math.PI;
     }
-    const xOffsetClockwise = 20 * Math.sin(-revolvingCircleRotationRef.current);
-    const yOffsetClockwise = 20 * Math.cos(-revolvingCircleRotationRef.current);
+    updateAnimationState({ revolvingCircleRotation });
+    drawRevolvingCircle(context, xPos, yPos, -revolvingCircleRotation, 'blue');
+    drawRevolvingCircle(context, xPos, yPos, -revolvingCircleRotation * 2, 'cyan', 40);
+    drawRevolvingCircle(context, xPos, yPos, revolvingCircleRotation, 'green', 30);
+    drawRevolvingCircle(context, xPos, yPos, revolvingCircleRotation + Math.PI, 'yellow');
+    drawRevolvingCircle(context, xPos, yPos, revolvingCircleRotation * 2, 'purple', 60);
+  }
+
+  function drawRevolvingCircle(
+    context: CanvasRenderingContext2D,
+    xPos: number,
+    yPos: number,
+    rotation: number,
+    fillStyle: string,
+    radius: number = 20
+  ): void {
+    const xOffset = radius * Math.sin(rotation);
+    const yOffset = radius * Math.cos(rotation);
     context.beginPath();
-    context.arc(xPos + xOffsetClockwise, yPos + yOffsetClockwise, 5, 0, Math.PI * 2);
-    context.fillStyle = 'blue';
-    context.fill();
-    const xOffsetCounterclockwise = 20 * Math.sin(revolvingCircleRotationRef.current * 2);
-    const yOffsetCounterclockwise = 20 * Math.cos(revolvingCircleRotationRef.current * 2);
-    context.beginPath();
-    context.arc(xPos + xOffsetCounterclockwise, yPos + yOffsetCounterclockwise, 5, 0, Math.PI * 2);
-    context.fillStyle = 'green';
+    context.arc(xPos + xOffset, yPos + yOffset, 5, 0, Math.PI * 2);
+    context.fillStyle = fillStyle;
     context.fill();
   }
 
@@ -94,8 +124,18 @@ export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged
     onCursorPositionChanged({ x: cursorXPos, y: cursorYPos });
   }
 
+  function handleMouseClicked(): void {
+    updateAnimationState({ isCursorLocked: !animationStateRef.current.isCursorLocked });
+  }
+
   return (
-    <canvas ref={canvasRef} height={480} width={720} onMouseMove={handleMouseMoved}>
+    <canvas
+      ref={canvasRef}
+      height={480}
+      width={720}
+      onClick={handleMouseClicked}
+      onMouseMove={handleMouseMoved}
+    >
       Oops! Your browser doesn't support the canvas component.
     </canvas>
   );
