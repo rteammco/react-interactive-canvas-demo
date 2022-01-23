@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChangeEvent } from 'react';
 
 const CELL_BORDER_STYLE = '1px solid black';
@@ -90,3 +91,9 @@ export default function InputGrid({ gridSize, gridValues, onGridValuesChanged }:
 
   return <div style={{ padding: 5 }}>{gridRows}</div>;
 }
+
+const MemoizedInputGrid = React.memo(
+  InputGrid,
+  (prevProps, nextProps) => prevProps.gridValues === nextProps.gridValues
+);
+export { MemoizedInputGrid };

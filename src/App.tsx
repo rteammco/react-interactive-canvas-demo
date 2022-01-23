@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import AnimatedCanvas from './components/AnimatedCanvas';
-import InputGrid from './components/InputGrid';
+import { MemoizedInputGrid } from './components/InputGrid';
 import { Point2D } from './utils/Point2D';
 
 type GridValues = string[][];
@@ -38,7 +38,7 @@ function App() {
     return gridValues.reduce(
       (grids: React.ReactElement[], nextGridValues: GridValues, nextGridIndex: number) => {
         grids.push(
-          <InputGrid
+          <MemoizedInputGrid
             key={`grid_input_${nextGridIndex}`}
             gridSize={GRID_SIZE}
             gridValues={nextGridValues}
