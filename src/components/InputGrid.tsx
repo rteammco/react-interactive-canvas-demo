@@ -50,23 +50,27 @@ function InputCell({
 interface Props {
   gridSize: number;
   gridValues: string[][];
+  onGridValuesChanged: (newGridValues: string[][]) => void;
 }
 
-export default function InputGrid({ gridSize, gridValues }: Props) {
+export default function InputGrid({ gridSize, gridValues, onGridValuesChanged }: Props) {
+  function onGridValueChanged(row: number, col: number, newValue: string): void {
+    const updatedGridValues = [...gridValues];
+    updatedGridValues[row][col] = newValue;
+    onGridValuesChanged(updatedGridValues);
+  }
+
   const gridRows = [];
   for (let i = 0; i < gridSize; i++) {
     const gridColumns = [];
-    const rowValues: string[] | undefined = gridValues[i];
     for (let j = 0; j < gridSize; j++) {
       gridColumns.push(
         <InputCell
           key={`cell_${i}_${j}`}
           isLastCellInRow={j === gridSize - 1}
           isLastRow={i === gridSize - 1}
-          value={(rowValues && rowValues[j]) ?? ''}
-          onValueChanged={(x) => {
-            console.log(x);
-          }}
+          value={gridValues[i][j]}
+          onValueChanged={(newValue) => onGridValueChanged(i, j, newValue)}
         />
       );
     }
