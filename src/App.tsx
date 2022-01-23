@@ -18,11 +18,21 @@ function App() {
     <div className="App">
       <h1>React - Interactive Canvas Demo</h1>
       <AnimatedCanvas cursorPosition={cursorPosition} onCursorPositionChanged={setCursorPosition} />
-      <InputGrid gridSize={4} gridValues={gridValues} />
-      <InputGrid gridSize={4} gridValues={gridValues} />
-      <InputGrid gridSize={4} gridValues={gridValues} />
-      <InputGrid gridSize={4} gridValues={gridValues} />
-      <InputGrid gridSize={4} gridValues={gridValues} />
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+        <InputGrid gridSize={4} gridValues={gridValues} />
+      </div>
     </div>
   );
 }
