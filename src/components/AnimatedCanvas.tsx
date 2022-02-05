@@ -105,8 +105,8 @@ export default function AnimatedCanvas({ cursorPosition, onCursorPositionChanged
     fillStyle: string,
     radius: number = 20
   ): void {
-    const xOffset = radius * Math.sin(rotation);
-    const yOffset = radius * Math.cos(rotation);
+    const xOffset = radius * Math.cos(rotation);
+    const yOffset = radius * Math.sin(rotation);
     context.beginPath();
     context.arc(xPos + xOffset, yPos + yOffset, 5, 0, Math.PI * 2);
     context.fillStyle = fillStyle;
