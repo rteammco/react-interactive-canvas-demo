@@ -1,5 +1,3 @@
-import { ChangeEvent } from 'react';
-
 const CELL_BORDER_STYLE = '1px solid black';
 const CELL_SIZE = 48;
 
